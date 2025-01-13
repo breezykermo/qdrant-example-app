@@ -1,9 +1,20 @@
 services:
+  server:
+    build:
+      context: ./server/
+    command: uvicorn main:app --reload --host 0.0.0.0
+    networks:
+      - qdrant-cluster
+    ports:
+      - 8000:8000 # For DEV
+    volumes:
+      - ./server/app:/app
+
   qdrant-node-1:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-1
     ports:
-      - "6333:6333"  # Expose REST API to host 
+      - "6333:6333"  # For DEV 
     networks:
       - qdrant-cluster
     volumes:
@@ -31,7 +42,6 @@ services:
         condition: service_started
     command:
       ./entrypoint.sh --bootstrap '${QDRANT_BOOTSTRAP_NODE_URI}'
-
 
 networks:
   qdrant-cluster:

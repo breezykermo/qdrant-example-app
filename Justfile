@@ -9,5 +9,9 @@ up:
 down:
   docker-compose down
 
+clean:
+  rm -rf data/node1/**
+  rm -rf data/node2/**
+
 example:
   echo "TODO:"

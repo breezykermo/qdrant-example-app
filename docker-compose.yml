@@ -1,0 +1,41 @@
+services:
+  qdrant-node-1:
+    image: qdrant/qdrant:${QDRANT_VERSION}
+    container_name: qdrant-node-1
+    ports:
+      - "6333:6333"  # REST API
+      - "6334:6334"  # Internal cluster communication
+    networks:
+      - qdrant-cluster
+    volumes:
+      - ./data/node1:/qdrant/storage
+      - ./configs/node1.yaml:/qdrant/config/config.yaml
+    command:
+      ./entrypoint.sh --uri '${QDRANT_BOOTSTRAP_NODE_URI}'
+    healthcheck:
+      test: ["CMD", "curl", "${QDRANT_HEALTHCHECK_NODE_URI}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  qdrant-node-2:
+    image: qdrant/qdrant:${QDRANT_VERSION}
+    container_name: qdrant-node-2
+    ports:
+      - "6335:6333"  # REST API for node 2 (mapped to a different host port)
+      - "6336:6334"  # Internal cluster communication for node 2
+    networks:
+      - qdrant-cluster
+    volumes:
+      - ./data/node2:/qdrant/storage
+      - ./configs/node1.yaml:/qdrant/config/config.yaml
+    depends_on:
+      qdrant-node-1:
+        condition: service_healthy
+    command:
+      ./entrypoint.sh --bootstrap '${QDRANT_BOOTSTRAP_NODE_URI}'
+
+
+networks:
+  qdrant-cluster:
+    driver: bridge

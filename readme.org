@@ -6,9 +6,9 @@ An example application show-casing [[https://qdrant.tech/qdrant-vector-database/
 - [[https://docs.docker.com/compose/][Docker Compose]]
 - [[https://github.com/casey/just][just]]
 
-** Run the application
+** Bring the server up 
 #+begin_src sh
-just run
+just up
 #+end_src
 
 ** Run the example 

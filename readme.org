@@ -1,0 +1,19 @@
+* Qdrant Example App
+
+An example application show-casing [[https://qdrant.tech/qdrant-vector-database/][Qdrant's vector database]].
+
+** Requirements
+- [[https://docs.docker.com/compose/][Docker Compose]]
+- [[https://github.com/casey/just][just]]
+
+** Run the application
+#+begin_src sh
+just run
+#+end_src
+
+** Run the example 
+#+begin_src sh
+just example 
+#+end_src
+
+

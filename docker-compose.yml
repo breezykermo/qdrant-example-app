@@ -3,8 +3,7 @@ services:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-1
     ports:
-      - "6333:6333"  # REST API
-      - "6334:6334"  # Internal cluster communication
+      - "6333:6333"  # Expose REST API to host 
     networks:
       - qdrant-cluster
     volumes:
@@ -26,7 +25,7 @@ services:
       - qdrant-cluster
     volumes:
       - ./data/node2:/qdrant/storage
-      - ./configs/node1.yaml:/qdrant/config/config.yaml
+      - ./configs/node2.yaml:/qdrant/config/config.yaml
     depends_on:
       qdrant-node-1:
         condition: service_started

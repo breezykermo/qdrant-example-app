@@ -32,6 +32,8 @@ services:
   qdrant-node-2:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-2
+    ports:
+      - "6334:6333"  # For DEV 
     networks:
       - qdrant-cluster
     volumes:
@@ -42,6 +44,21 @@ services:
         condition: service_started
     command:
       ./entrypoint.sh --bootstrap '${QDRANT_BOOTSTRAP_NODE_URI}'
+
+  create_collection:
+    build:
+      context: ./scripts/create_collection/
+    profiles: ["initialization"]
+    volumes:
+      - ./scripts/create_collection/main.py:/app/main.py
+    environment:
+      QDRANT_HOST: qdrant-node-1 
+      QDRANT_PORT: '${QDRANT_PORT}' 
+      QDRANT_COLLECTION_NAME: '${QDRANT_COLLECTION_NAME}'
+      QDRANT_SHARD_NUMBER: '${QDRANT_SHARD_NUMBER}'
+      QDRANT_REPLICATION_FACTOR: '${QDRANT_REPLICATION_FACTOR}' 
+    networks:
+      - qdrant-cluster
 
 networks:
   qdrant-cluster:

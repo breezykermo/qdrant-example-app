@@ -11,6 +11,11 @@ An example application show-casing [[https://qdrant.tech/qdrant-vector-database/
 just up
 #+end_src
 
+** Initialize the server with a collection
+#+begin_src sh
+just initialize 
+#+end_src
+
 ** Run the example 
 #+begin_src sh
 just example 

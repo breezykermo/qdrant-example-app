@@ -38,38 +38,3 @@ def cache_to_file(cache_file):
         
         return wrapper
     return decorator
-
-@cache_to_file("user_payloads.pkl")
-def load_data_with_assigned_users(no_of_users: int):
-    """
-    The data is arXiv paper titles and abstracts, available at:
-    https://www.kaggle.com/datasets/Cornell-University/arxiv
-
-    For this example, we randomly assign each paper to one of `no_of_users` different users.
-    We will represent each point in Qdrant through a combined title/abstract string.
-    """
-    import random
-
-    with open("./data.json") as f:
-        raw_data = json.load(f)
-    info("ArXiv data loaded from disk.")
-
-    raw_data = raw_data[:1000000] 
-
-    user_domain = range(1, no_of_users)
-    user_assignments = [random.choice(user_domain) for _ in raw_data]
-    data = [{
-        'title': vl.get('title').replace('\\r\\n', ' ').strip(), 
-        'abstract': vl.get('abstract').replace('\\r\\n', ' ').strip(),
-        'user_id': user_assignments[idx],
-    } for idx, vl in enumerate(raw_data)]
-    info("Users assigned to all data.")
-
-    texts: List[str] = [
-        "This paper is titled '" + vl.get('title').replace('\\r\\n', ' ').strip() + "'. " + vl.get('abstract').replace('\\r\\n', ' ').strip()
-        for vl in raw_data
-    ]
-
-    return (data, texts)
-
-

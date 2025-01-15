@@ -11,7 +11,9 @@ An example application show-casing [[https://qdrant.tech/qdrant-vector-database/
 just up
 #+end_src
 
-** Initialize the server with a collection
+** Initialize the server with some vectors 
+These are sourced from a Kaggle dataset of arXiv papers.
+
 #+begin_src sh
 just initialize 
 #+end_src
@@ -21,4 +23,6 @@ just initialize
 just example 
 #+end_src
 
-
+** Play around
+The server is exposed locally on [[http://localhost:8000]].
+See the [[./scripts/run_search/main.py][run_search]] script for an example of how you can query it.

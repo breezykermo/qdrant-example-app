@@ -121,6 +121,8 @@ def load_data_with_assigned_users(no_of_users: int):
     } for idx, vl in enumerate(raw_data)]
     info("Users assigned to all data.")
 
+    # NOTE: Because embeddings are taking a long time to generate, for the time being I will just generate the embeddings over the titles, so that we have some to use by default. 
+    # TODO: generate embeddings over this more complete representation
     # texts: List[str] = [
     #     "This paper is titled '" + vl.get('title').replace('\\r\\n', ' ').strip() + "'. " + vl.get('abstract').replace('\\r\\n', ' ').strip()
     #     for vl in raw_data
@@ -147,7 +149,7 @@ def make_dense_embeddings(texts: List[str]):
 
     return dense_embeddings
 
-@yaspin(text="Generating late interaction embeddings...", timer=True)
+@yaspin(text="Generating late interaction embeddings...")
 @cache_to_file(f"data/{upsert_index_start_zfill}_{upsert_index_end_zfill}_lateinteraction.pkl")
 def make_late_interaction_embeddings(texts: List[str]):
     late_interaction_model = LateInteractionTextEmbedding(model_name=late_interaction_model_name, batch_size=EMBEDDING_BATCH_SIZE)

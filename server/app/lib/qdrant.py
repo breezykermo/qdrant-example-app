@@ -74,6 +74,10 @@ def init_collection(logger, collection_name):
         logger.info(f"Collection '{collection_name}' already exists, nothing done.")
 
 def search(user_id, collection_name, sparse_model, dense_model, late_interaction_model, query_text: str):
+    """
+    Use a hybrid search (using both sparse vectors and dense vectors) that is re-ranked with a late interaction model.
+    Searches are filtered by "user_id"
+    """ 
     query_sparse_vectors  = make_embeddings(sparse_model, query_text)
     query_dense_vectors = make_embeddings(dense_model, query_text)
     query_late_interaction_vectors = make_embeddings(late_interaction_model, query_text)

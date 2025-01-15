@@ -2,7 +2,7 @@ set shell := ["bash", "-uc"]
 
 up:
   source .env
-  docker-compose up -d --remove-orphans
+  docker-compose up -d
 
 down:
   docker-compose down

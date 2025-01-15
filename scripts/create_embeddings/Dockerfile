@@ -15,7 +15,8 @@ RUN wget -q -O data.json "https://www.dropbox.com/scl/fi/rn5lfieadbyvslh4avtb1/a
 # RUN wget https://www.dropbox.com/scl/fi/rbwb5drprqix2yt9vibo6/arxiv-metadata-oai-snapshot.json?rlkey=vjkh438u3v6zp9t8wjiyrh6qm&st=xcsi0uga&dl=1
 # RUN time jq -c '[inputs | {title, abstract}]' arxiv-snapshot.json > data.json
 
-RUN if [ "$download_embeddings" = "true" ];\
-  echo "TODO: download pkls from dropbox";  
+RUN if [ "$download_embeddings" = "true" ]; then\
+  echo "TODO: download pkls from dropbox";  \
+  fi
 
 CMD ["python", "main.py"]

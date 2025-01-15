@@ -46,6 +46,12 @@ sparse_model_name = os.getenv('SPARSE_MODEL_NAME')
 dense_model_name = os.getenv('DENSE_MODEL_NAME')
 late_interaction_model_name = os.getenv('LATE_INTERACTION_MODEL_NAME')
 
+upsert_index_start = int(os.getenv("DATASET_INDEX_START"))
+upsert_index_end = int(os.getenv("DATASET_INDEX_END"))
+upsert_index_start_zfill = str(upsert_index_start).zfill(8)
+upsert_index_end_zfill = str(upsert_index_end).zfill(8)
+should_upsert_points = int(os.getenv("SHOULD_UPSERT_POINTS"))
+
 def info(*args): print(*args) if DEBUG else None 
 
 def cache_to_file(cache_file):
@@ -87,8 +93,8 @@ def make_embeddings(model, docs: List[str]):
 client = QdrantClient(host=qdrant_host, port=qdrant_port)
 info("Qdrant client configured.")
 
-@yaspin(text="Loading data from disk...", timer=True)
-@cache_to_file("payloads.pkl")
+@yaspin(text="Loading data from disk...")
+@cache_to_file(f"data/{upsert_index_start_zfill}_{upsert_index_end_zfill}_payloads.pkl")
 def load_data_with_assigned_users(no_of_users: int):
     """
     The data is arXiv paper titles and abstracts, available at:
@@ -103,7 +109,8 @@ def load_data_with_assigned_users(no_of_users: int):
         raw_data = json.load(f)
     info("ArXiv data loaded from disk.")
 
-    raw_data = raw_data[:100] 
+    # Take start and end indices from environment 
+    raw_data = raw_data[upsert_index_start:upsert_index_end] 
 
     user_domain = range(1, no_of_users)
     user_assignments = [random.choice(user_domain) for _ in raw_data]
@@ -114,15 +121,16 @@ def load_data_with_assigned_users(no_of_users: int):
     } for idx, vl in enumerate(raw_data)]
     info("Users assigned to all data.")
 
-    texts: List[str] = [
-        "This paper is titled '" + vl.get('title').replace('\\r\\n', ' ').strip() + "'. " + vl.get('abstract').replace('\\r\\n', ' ').strip()
-        for vl in raw_data
-    ]
+    # texts: List[str] = [
+    #     "This paper is titled '" + vl.get('title').replace('\\r\\n', ' ').strip() + "'. " + vl.get('abstract').replace('\\r\\n', ' ').strip()
+    #     for vl in raw_data
+    # ]
+    texts: List[str] = [vl.get('title') for vl in raw_data]
 
     return (data, texts)
 
-@yaspin(text="Generating sparse embeddings...", timer=True)
-@cache_to_file("sparse_embeddings.pkl")
+@yaspin(text="Generating sparse embeddings...")
+@cache_to_file(f"data/{upsert_index_start_zfill}_{upsert_index_end_zfill}_sparse.pkl")
 def make_sparse_embeddings(texts: List[str]):
     sparse_model = SparseTextEmbedding(model_name=sparse_model_name, batch_size=EMBEDDING_BATCH_SIZE)
     sparse_embeddings = make_embeddings(sparse_model, texts) 
@@ -130,8 +138,8 @@ def make_sparse_embeddings(texts: List[str]):
 
     return sparse_embeddings
 
-@yaspin(text="Generating dense embeddings...", timer=True)
-@cache_to_file("dense_embeddings.pkl")
+@yaspin(text="Generating dense embeddings...")
+@cache_to_file(f"data/{upsert_index_start_zfill}_{upsert_index_end_zfill}_dense.pkl")
 def make_dense_embeddings(texts: List[str]):
     dense_model = TextEmbedding(model_name=dense_model_name, batch_size=EMBEDDING_BATCH_SIZE)
     dense_embeddings = make_embeddings(dense_model, texts) 
@@ -140,7 +148,7 @@ def make_dense_embeddings(texts: List[str]):
     return dense_embeddings
 
 @yaspin(text="Generating late interaction embeddings...", timer=True)
-@cache_to_file("late_interaction_embeddings.pkl")
+@cache_to_file(f"data/{upsert_index_start_zfill}_{upsert_index_end_zfill}_lateinteraction.pkl")
 def make_late_interaction_embeddings(texts: List[str]):
     late_interaction_model = LateInteractionTextEmbedding(model_name=late_interaction_model_name, batch_size=EMBEDDING_BATCH_SIZE)
     late_interaction_embeddings = make_embeddings(late_interaction_model, texts) 
@@ -148,8 +156,13 @@ def make_late_interaction_embeddings(texts: List[str]):
 
     return late_interaction_embeddings
 
-@cache_to_file("points.pkl")
-def make_points(dense_vectors, sparse_vectors, late_interaction_vectors, payloads):
+@cache_to_file(f"data/points{upsert_index_start_zfill}_{upsert_index_end_zfill}.pkl")
+def make_points():
+    payloads, texts = load_data_with_assigned_users(10)
+    sparse_embeddings = make_sparse_embeddings(texts)
+    dense_embeddings = make_dense_embeddings(texts)
+    late_interaction_embeddings = make_late_interaction_embeddings(texts)
+
     return [PointStruct(
         id=idx,
         payload={
@@ -166,19 +179,15 @@ def make_points(dense_vectors, sparse_vectors, late_interaction_vectors, payload
             "text-late-interaction": late_interaction_vector,
         },
     ) for idx, (dense_vector, sparse_vector, late_interaction_vector, payload)
-        in enumerate(zip(dense_vectors, sparse_vectors, late_interaction_vectors, payloads))]
+        in enumerate(zip(dense_embeddings, sparse_embeddings, late_interaction_embeddings, payloads))]
 
-data, texts = load_data_with_assigned_users(10)
-sparse_embeddings = make_sparse_embeddings(texts)
-dense_embeddings = make_dense_embeddings(texts)
-late_interaction_embeddings = make_late_interaction_embeddings(texts)
-points = make_points(dense_embeddings, sparse_embeddings, late_interaction_embeddings, data)
-
+points = make_points()
 
 def chunk_list(lst, chunk_size=50):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 # NOTE: operation seems to time out with bigger upserts
-for i, chunk in enumerate(chunk_list(points)):
-    t = client.upsert(collection_name, chunk)
-    info(f"Upserted chunk {i}")
+if should_upsert_points != 0:
+    for i, chunk in enumerate(chunk_list(points)):
+        t = client.upsert(collection_name, chunk)
+        info(f"Upserted chunk {i}")

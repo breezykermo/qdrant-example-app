@@ -3,23 +3,19 @@ services:
     build:
       context: ./server/
     command: uvicorn main:app --reload --host 0.0.0.0
-
     stdin_open: true  # For DEV
     tty: true         # For DEV 
-
     env_file: ".env"
     networks:
       - qdrant-cluster
     ports:
-      - 8000:8000 # For DEV
+      - 8000:8000
     volumes:
       - ./server/app:/app
 
   qdrant-node-1:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-1
-    # ports:
-    #   - "6333:6333"  # For DEV 
     networks:
       - qdrant-cluster
     volumes:
@@ -31,8 +27,6 @@ services:
   qdrant-node-2:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-2
-    # ports:
-    #   - "6334:6333"  # For DEV 
     networks:
       - qdrant-cluster
     volumes:
@@ -52,15 +46,16 @@ services:
         # Please note that this can take some time!
         download_embeddings: True
     profiles: ["initialization"]
+
+    # command: bash 
+    # stdin_open: true  # For DEV
+    # tty: true         # For DEV 
+
     volumes:
       - ./scripts/create_embeddings/main.py:/app/main.py
-      - ./data/sparse_embeddings.pkl:/app/sparse_embeddings.pkl
-      - ./data/dense_embeddings.pkl:/app/dense_embeddings.pkl
-      - ./data/late_interaction_embeddings.pkl:/app/late_interaction_embeddings.pkl
+      - ./scripts/create_embeddings/data:/app/data
+
     env_file: ".env"
-    stdin_open: true  # For DEV
-    tty: true         # For DEV 
-    command: bash     # For DEV 
     networks:
       - qdrant-cluster
 
@@ -69,9 +64,6 @@ services:
       context: ./scripts/run_search/
     profiles: ["examples"]
     env_file: ".env"
-    # stdin_open: true  # For DEV
-    # tty: true         # For DEV 
-    # command: bash     # For DEV 
     volumes:
       - ./scripts/run_search/main.py:/app/main.py
 

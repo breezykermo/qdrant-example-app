@@ -1,3 +1,4 @@
 server/app/__pycache__
 server/app/lib/__pycache__
-server/app/models
+scripts/create_embeddings/data
+server/app/data

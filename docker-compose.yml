@@ -43,14 +43,11 @@ services:
       context: ./scripts/create_embeddings/
       args:
         # Set this to False if you want to generate the embeddings yourself. 
-        # Please note that this can take some time!
-        download_embeddings: True
+        # Please note that this can take some time! 
+        # Reduce the 'DATASET_INDEX_END' number to something like 100 if you
+        # just want to get up and running.
+        download_embeddings: False 
     profiles: ["initialization"]
-
-    # command: bash 
-    # stdin_open: true  # For DEV
-    # tty: true         # For DEV 
-
     volumes:
       - ./scripts/create_embeddings/main.py:/app/main.py
       - ./scripts/create_embeddings/data:/app/data

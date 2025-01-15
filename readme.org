@@ -1,28 +1,52 @@
 * Qdrant Example App
-
-An example application show-casing [[https://qdrant.tech/qdrant-vector-database/][Qdrant's vector database]].
+An example application show-casing hybrid search using [[https://qdrant.tech/qdrant-vector-database/][Qdrant's vector database]].
 
 ** Requirements
 - [[https://docs.docker.com/compose/][Docker Compose]]
 - [[https://github.com/casey/just][just]]
 
 ** Bring the server up 
+This is a distributed systems simulated locally on your computer with Docker containers.
+It consists of 2 Qdrant nodes, and one FastAPI server node.
+
+Once you've run the command, wait until the server logs indicate that the startup process is complete with the message ``Application startup complete".
+(It can take some time, as on first startup it will download the embedding models over the network.)
+
 #+begin_src sh
 just up
 #+end_src
 
-** Initialize the server with some vectors 
-These are sourced from a Kaggle dataset of arXiv papers.
+** Initialize the server by uploading some points 
+Now let's add some vectors to Qdrant!
+Let's open up a new terminal, keeping the backend live.
+
+We're going to use a [[https://www.kaggle.com/datasets/Cornell-University/arxiv][Kaggle dataset of arXiv papers]].
+This dataset consists of raw text, and thus in order to leverage Qdrant we first need to transform the records into vectors with an [[https://qdrant.github.io/fastembed/examples/Supported_Models/][embedding model]].
+We need to do this thrice, as in this example we create different vectors (sparse, dense, and late interaction) to represent different aspects of the original document, which we will combine in a [[https://qdrant.tech/articles/what-is-rag-in-ai/?q=hybrid+se][hybrid search]] to provide better results. 
+
+We do this with a Python script; but as we are doing this for 1M documents, it can take some time!
+(The script also needs to download the dataset from Dropbox, which is several GB.)
+So be prepared to get a coffee (or two) while this next command runs to completion.
+
+NOTE: if you just want to get something up and running to see how it works, then modify the ~DATASET_INDEX_END~ value in [[./.env][.env]] to something much smaller, i.e. ~100~. This will then just add 100 documents from the dataset to the database.
 
 #+begin_src sh
 just initialize 
 #+end_src
 
 ** Run the example 
+Now that we have a bunch of vectors in our database, we can query it!
+The following command runs a simple Python script that will send a query to the server node with an HTTP request.
+The server will vectorize the query, and then search for similar vectors in Qdrant using hybrid search, filtering the results by the ~user_id~ provided in the query.
+
 #+begin_src sh
 just example 
 #+end_src
 
+You should see a JSON of 10 results sent from the server, but sourced from Qdrant's powerful hybrid search.
+
 ** Play around
-The server is exposed locally on [[http://localhost:8000]].
+Peek around in the code in the [[./server/app/][server]] to see how Qdrant can be used to provide semantic search.
+
+Once you have the cluster running via the steps explained above, the server API will exposed locally on [[http://localhost:8000]].
 See the [[./scripts/run_search/main.py][run_search]] script for an example of how you can query it.

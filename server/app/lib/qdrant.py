@@ -40,16 +40,21 @@ def init_collection(logger, collection_name):
     shard_number = os.getenv("QDRANT_SHARD_NUMBER")
     replication_factor = os.getenv("QDRANT_REPLICATION_FACTOR")
 
+    dense_model_dims = get_model_dims(TextEmbedding, os.getenv("DENSE_MODEL_NAME"))
+    late_interaction_model_dims = get_model_dims(LateInteractionTextEmbedding, os.getenv("LATE_INTERACTION_MODEL_NAME"))
+    logger.info(f"Dense model dims: {dense_model_dims}")
+    logger.info(f"Late interacton model dims: {dense_model_dims}")
+
     if not client.collection_exists(collection_name):
         client.create_collection(
             collection_name=collection_name,
             vectors_config={
                 "text-dense": VectorParams(
-                    size=get_model_dims(TextEmbedding, os.getenv("DENSE_MODEL_NAME")),
+                    size=dense_model_dims,
                     distance=Distance.COSINE
                 ),
                 "text-late-interaction": VectorParams(
-                    size=get_model_dims(LateInteractionTextEmbedding, os.getenv("LATE_INTERACTION_MODEL_NAME")),
+                    size=late_interaction_model_dims,
                     distance=Distance.COSINE,
                     multivector_config=MultiVectorConfig(
                         comparator=MultiVectorComparator.MAX_SIM,

@@ -2,7 +2,7 @@ set shell := ["bash", "-uc"]
 
 up:
   source .env
-  docker-compose up -d
+  docker-compose up
 
 down:
   docker-compose down

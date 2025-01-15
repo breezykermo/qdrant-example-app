@@ -12,7 +12,7 @@ clean:
   sudo rm -rf data/node2/**
 
 initialize:
-  docker-compose run create_collection 
+  docker-compose run create_embeddings
 
 example:
-  echo "TODO:"
+  docker-compose run example_search 

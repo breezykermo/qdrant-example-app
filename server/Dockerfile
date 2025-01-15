@@ -5,7 +5,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-COPY ./app/main.py .
+COPY ./app .
+
+# Download collection data from Dropbox
+RUN apt-get update && apt-get -y install wget
+RUN wget -q -O data.json "https://www.dropbox.com/scl/fi/rn5lfieadbyvslh4avtb1/arxiv-snapshot-title-abstract.json?rlkey=az1bmgim0fdmskspfoney1pyb&st=nipl4mxq&dl=1"
 
 EXPOSE 8080
 

@@ -3,6 +3,11 @@ services:
     build:
       context: ./server/
     command: uvicorn main:app --reload --host 0.0.0.0
+
+    stdin_open: true  # For DEV
+    tty: true         # For DEV 
+
+    env_file: ".env"
     networks:
       - qdrant-cluster
     ports:
@@ -13,8 +18,8 @@ services:
   qdrant-node-1:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-1
-    ports:
-      - "6333:6333"  # For DEV 
+    # ports:
+    #   - "6333:6333"  # For DEV 
     networks:
       - qdrant-cluster
     volumes:
@@ -22,18 +27,12 @@ services:
       - ./configs/node1.yaml:/qdrant/config/config.yaml
     command:
       ./entrypoint.sh --uri '${QDRANT_BOOTSTRAP_NODE_URI}'
-    healthcheck:
-      test: ["CMD", "curl", "-f", "${QDRANT_HEALTHCHECK_NODE_URI}"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-      start_period: 10s
 
   qdrant-node-2:
     image: qdrant/qdrant:${QDRANT_VERSION}
     container_name: qdrant-node-2
-    ports:
-      - "6334:6333"  # For DEV 
+    # ports:
+    #   - "6334:6333"  # For DEV 
     networks:
       - qdrant-cluster
     volumes:
@@ -45,20 +44,40 @@ services:
     command:
       ./entrypoint.sh --bootstrap '${QDRANT_BOOTSTRAP_NODE_URI}'
 
-  create_collection:
+  create_embeddings:
     build:
-      context: ./scripts/create_collection/
+      context: ./scripts/create_embeddings/
+      args:
+        # Set this to False if you want to generate the embeddings yourself. 
+        # Please note that this can take some time!
+        download_embeddings: True
     profiles: ["initialization"]
     volumes:
-      - ./scripts/create_collection/main.py:/app/main.py
-    environment:
-      QDRANT_HOST: qdrant-node-1 
-      QDRANT_PORT: '${QDRANT_PORT}' 
-      QDRANT_COLLECTION_NAME: '${QDRANT_COLLECTION_NAME}'
-      QDRANT_SHARD_NUMBER: '${QDRANT_SHARD_NUMBER}'
-      QDRANT_REPLICATION_FACTOR: '${QDRANT_REPLICATION_FACTOR}' 
+      - ./scripts/create_embeddings/main.py:/app/main.py
+      - ./data/sparse_embeddings.pkl:/app/sparse_embeddings.pkl
+      - ./data/dense_embeddings.pkl:/app/dense_embeddings.pkl
+      - ./data/late_interaction_embeddings.pkl:/app/late_interaction_embeddings.pkl
+    env_file: ".env"
+    stdin_open: true  # For DEV
+    tty: true         # For DEV 
+    command: bash     # For DEV 
     networks:
       - qdrant-cluster
+
+  example_search:
+    build:
+      context: ./scripts/run_search/
+    profiles: ["examples"]
+    env_file: ".env"
+    # stdin_open: true  # For DEV
+    # tty: true         # For DEV 
+    # command: bash     # For DEV 
+    volumes:
+      - ./scripts/run_search/main.py:/app/main.py
+
+    networks:
+      - qdrant-cluster
+
 
 networks:
   qdrant-cluster:

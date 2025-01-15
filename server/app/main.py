@@ -19,7 +19,7 @@ from fastembed import (
     TextEmbedding,
 )
 import logging 
-from lib.qdrant import init_collection, search
+from lib.qdrant import init_collection, search 
 
 
 sparse_model_name = os.getenv('SPARSE_MODEL_NAME')
@@ -70,4 +70,6 @@ async def hybrid_search(payload: dict = Body(...)):
     query_text = payload.get("query")
 
     results = search(user_id, collection_name, sparse_model, dense_model, late_interaction_model, query_text)
+
+    return results.points
 

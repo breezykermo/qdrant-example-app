@@ -20,3 +20,18 @@ server_port = os.getenv('SERVER_PORT')
 
 print(f"Querying server on port {server_port} and host '{server_host}'...")
 
+url = f"http://{server_host}:{server_port}/hybrid_search"
+payload = {
+    "user_id": 1,
+    "query": "HNSW vector search biology"
+}
+
+try:
+    response = requests.post(url, json=payload)
+
+    # Print the response content and status code
+    print(f"Status Code: {response.status_code}")
+    print(f"Response Body: {response.json() if response.headers.get('Content-Type') == 'application/json' else response.text}")
+
+except requests.exceptions.RequestException as e:
+    print(f"An error occurred: {e}")

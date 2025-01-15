@@ -26,8 +26,8 @@ qdrant_host = os.getenv('QDRANT_HOST')
 qdrant_port = os.getenv('QDRANT_PORT')
 client = QdrantClient(host=qdrant_host, port=qdrant_port)
 
-def make_embeddings(model, docs: List[str]):
-    return list(model.embed(docs))
+def make_embeddings(model, doc: str):
+    return next(model.embed([doc]))
 
 def init_collection(logger, collection_name):
     """
@@ -57,8 +57,7 @@ def init_collection(logger, collection_name):
                 ),
             },
             sparse_vectors_config={
-                "text-sparse": SparseVectorParams(
-                ),
+                "text-sparse": SparseVectorParams(),
             },
             # Enable binary quantization for collection
             quantization_config=BinaryQuantization(
@@ -75,10 +74,9 @@ def init_collection(logger, collection_name):
         logger.info(f"Collection '{collection_name}' already exists, nothing done.")
 
 def search(user_id, collection_name, sparse_model, dense_model, late_interaction_model, query_text: str):
-    # # Compute sparse and dense vectors
-    query_sparse_vectors  = make_embedding(sparse_model, [query_text])
-    query_dense_vectors = make_embedding(dense_model, [query_text])
-    query_late_interaction_vectors = make_embedding(late_interaction_model, [query_text])
+    query_sparse_vectors  = make_embeddings(sparse_model, query_text)
+    query_dense_vectors = make_embeddings(dense_model, query_text)
+    query_late_interaction_vectors = make_embeddings(late_interaction_model, query_text)
 
     prefetch = [
         Prefetch(
@@ -87,7 +85,7 @@ def search(user_id, collection_name, sparse_model, dense_model, late_interaction
             limit=20,
         ),
         Prefetch(
-            query=models.SparseVector(**sparse_vectors.as_object()),
+            query=SparseVector(**query_sparse_vectors.as_object()),
             using='text-sparse',
             limit=20,
         ),
@@ -103,9 +101,9 @@ def search(user_id, collection_name, sparse_model, dense_model, late_interaction
     )
 
     search_results = client.query_points(
-        collection_name,
+        collection_name=collection_name,
         prefetch=prefetch,
-        filter=filter,
+        query_filter=filter,
         query=query_late_interaction_vectors,
         using='text-late-interaction',
         with_payload=True,

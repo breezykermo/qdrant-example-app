@@ -34,9 +34,7 @@ from yaspin import yaspin
 from typing import List, Union
 
 DEBUG = True
-DENSE_MODEL_DIMENSION = 1024
-LATE_INTERACTION_MODEL_DIMENSION = 128 
-EMBEDDING_BATCH_SIZE = 64
+EMBEDDING_BATCH_SIZE = 32 
 
 qdrant_host = os.getenv('QDRANT_HOST')
 qdrant_port = os.getenv('QDRANT_PORT')
@@ -47,7 +45,6 @@ shard_number = os.getenv('QDRANT_SHARD_NUMBER')
 sparse_model_name = os.getenv('SPARSE_MODEL_NAME')
 dense_model_name = os.getenv('DENSE_MODEL_NAME')
 late_interaction_model_name = os.getenv('LATE_INTERACTION_MODEL_NAME')
-
 
 def info(*args): print(*args) if DEBUG else None 
 

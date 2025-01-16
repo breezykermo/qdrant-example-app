@@ -45,7 +45,7 @@ services:
         # Set this to False if you want to generate the embeddings yourself. 
         # Please note that this can take some time! 
         # Reduce the 'DATASET_INDEX_END' number to something like 100 if you
-        # just want to get up and running.
+        # just want to get a small database up and running.
         download_embeddings: False 
     profiles: ["initialization"]
     volumes:

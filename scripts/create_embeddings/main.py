@@ -185,7 +185,7 @@ def make_points():
 
 points = make_points()
 
-def chunk_list(lst, chunk_size=50):
+def chunk_list(lst, chunk_size=100):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 # NOTE: operation seems to time out with bigger upserts

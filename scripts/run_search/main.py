@@ -23,7 +23,7 @@ print(f"Querying server on port {server_port} and host '{server_host}'...")
 url = f"http://{server_host}:{server_port}/hybrid_search"
 payload = {
     "user_id": 1,
-    "query": "HNSW vector search biology"
+    "query": "HNSW vector similarity search as applied to matters in biology"
 }
 
 try:

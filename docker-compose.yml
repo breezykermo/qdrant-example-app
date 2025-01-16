@@ -41,12 +41,6 @@ services:
   create_embeddings:
     build:
       context: ./scripts/create_embeddings/
-      args:
-        # Set this to False if you want to generate the embeddings yourself.
-        # Please note that there are currently only prebuilt embeddings for
-        # the 100k dataset, so if you change the 'DATASET_INDEX_END' in .env,
-        # you should set this to False for a faster build. 
-        download_embeddings: True 
     profiles: ["initialization"]
     volumes:
       - ./scripts/create_embeddings/main.py:/app/main.py

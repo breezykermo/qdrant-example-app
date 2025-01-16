@@ -1,4 +1,3 @@
 server/app/__pycache__
 server/app/lib/__pycache__
-scripts/create_embeddings/data
 server/app/data

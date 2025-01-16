@@ -185,11 +185,13 @@ def make_points():
 
 points = make_points()
 
-def chunk_list(lst, chunk_size=100):
+def chunk_list(lst, chunk_size=80):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 # NOTE: operation seems to time out with bigger upserts
 if should_upsert_points != 0:
-    for i, chunk in enumerate(chunk_list(points)):
+    all_chunks = chunk_list(points)
+    total_chunks = len(all_chunks)
+    for i, chunk in enumerate(all_chunks):
         t = client.upsert(collection_name, chunk)
-        info(f"Upserted chunk {i}")
+        info(f"Upserted chunk {i} / {total_chunks}")

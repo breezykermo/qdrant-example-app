@@ -24,15 +24,23 @@ We're going to use a [[https://www.kaggle.com/datasets/Cornell-University/arxiv]
 This dataset consists of raw text, and thus in order to leverage Qdrant we first need to transform the records into vectors with an [[https://qdrant.github.io/fastembed/examples/Supported_Models/][embedding model]].
 We need to do this thrice, as in this example we create different vectors (sparse, dense, and late interaction) to represent different aspects of the original document, which we will combine in a [[https://qdrant.tech/articles/what-is-rag-in-ai/?q=hybrid+se][hybrid search]] to provide better results. 
 
-We do this with a Python script; but as we are doing this for 1M documents, it can take some time!
-(The script also needs to download the dataset from Dropbox, which is several GB.)
-So be prepared to get a coffee (or two) while this next command runs to completion.
+We do this with a Python script; but as we want to do this for more than 1M documents, it can take several hours, depending on your machine!
+Thus instead of waiting hours, by default we will download 100k pre-generated embeddings.
+Run the following in the root directory:
 
-NOTE: if you just want to get something up and running to see how it works, then modify the ~DATASET_INDEX_END~ value in [[./.env][.env]] to something much smaller, i.e. ~100~. This will then just add 100 documents from the dataset to the database.
+#+begin_src sh
+just download_embeddings
+#+end_src
+
+Alternatively, if you just want to generate a smaller amount of embeddings locally to get a feel for how it works, then you can skip this step, and instead modify the ~DATASET_INDEX_END~ value in [[./.env][.env]] to something much smaller, i.e. ~100~.
+
+Run the following script to upload the embeddings to your Qdrant cluster:
 
 #+begin_src sh
 just initialize 
 #+end_src
+
+You can move onto the next step as that script begins to upload the embeddings as chunks! 
 
 ** Run the example 
 Now that we have a bunch of vectors in our database, we can query it!

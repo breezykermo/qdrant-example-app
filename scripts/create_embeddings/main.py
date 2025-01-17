@@ -189,6 +189,7 @@ def chunk_list(lst, chunk_size=80):
     return [lst[i:i + chunk_size] for i in range(0, len(lst), chunk_size)]
 
 # NOTE: operation seems to time out with bigger upserts
+# Possibly the same issue discussed here: https://github.com/qdrant/qdrant/issues/5774#issuecomment-2587336647
 if should_upsert_points != 0:
     all_chunks = chunk_list(points)
     total_chunks = len(all_chunks)
